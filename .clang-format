@@ -1,0 +1,13 @@
+---
+Language:      Cpp
+BasedOnStyle:  Mozilla
+
+BreakAfterAttributes: Leave
+ColumnLimit: 120
+IndentWidth: 4
+NamespaceIndentation: All
+BraceWrapping:
+  AfterFunction: false
+InsertNewlineAtEOF: true
+...
+
