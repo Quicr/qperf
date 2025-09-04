@@ -62,6 +62,12 @@ namespace qperf {
             case Status::kSendingUnannounce:
                 SPDLOG_INFO("PerfPublishTrackeHandler - status kSendingUnannounce");
                 break;
+            case Status::kPaused:
+                SPDLOG_INFO("PerfPublishTrackeHandler - status kPaused");
+                break;
+            case Status::kNewGroupRequested:
+                SPDLOG_INFO("PerfPublishTrackeHandler - status kNewGroupRequested");
+                break;
             default:
                 SPDLOG_INFO("PerfPublishTrackeHandler - status UNKNOWN");
                 break;
@@ -247,7 +253,7 @@ namespace qperf {
         auto transmit_time_ms = std::chrono::milliseconds(perf_config_.total_test_time);
         auto end_transmit_time = start_transmit_time + transmit_time_ms;
 
-        // Delay befor trasnmitting
+        // Delay before transmitting
         if (perf_config_.start_delay > 0) {
             std::this_thread::sleep_for(std::chrono::milliseconds(33));
             test_mode_ = qperf::TestMode::kWaitPreTest;
