@@ -4,11 +4,11 @@ Utility to evaluate relay performance.
 
 ## Command Line Programs
 
-### src/qperf_pub
+### > src/qperf_pub
 
 **qperf_pub** is a publisher that publishes based on the `-c <config.ini>` profile.  
 
-### src/qperf_sub
+### > src/qperf_sub
 
 **qperf_sub** is a subscriber that consumes the tracks based on the `-c <config.ini>` profile. 
 
@@ -27,3 +27,19 @@ The `namespace` and `name` together should be **unique** for the section, which 
 > [!IMPORTANT]
 > Each section **MUST** not share the same `namespace + name`. If namespace is the same, the name
 > should be different.
+
+## Building
+
+Configure cmake using the following:
+
+```
+cmake -B ./build -DLINT=ON -DCMAKE_BUILD_TYPE=Release
+```
+
+Build the programs using the following:
+
+```
+cmake --build build -j 4
+```
+
+The binaries will be under `./build`
