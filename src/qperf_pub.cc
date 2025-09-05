@@ -149,12 +149,12 @@ namespace qperf {
         // publish
         PublishObject(object_headers, object_span);
 
-        SPDLOG_INFO("PO, RUNNING, {}, {}, {}, {}, {}",
-                    perf_config_.test_name,
-                    group_id_,
-                    object_id_,
-                    publish_track_metrics_.objects_published,
-                    publish_track_metrics_.bytes_published);
+        SPDLOG_TRACE("PO, RUNNING, {}, {}, {}, {}, {}",
+                     perf_config_.test_name,
+                     group_id_,
+                     object_id_,
+                     publish_track_metrics_.objects_published,
+                     publish_track_metrics_.bytes_published);
 
         // return current time in ms - publish time
         return now;
