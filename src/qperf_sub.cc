@@ -165,18 +165,18 @@ namespace qperf {
                 SPDLOG_INFO("--------------------------------------------");
             }
 
-            SPDLOG_INFO("OR, RUNNING, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
-                        test_identifier_,
-                        perf_config_.test_name,
-                        object_header.group_id,
-                        object_header.object_id,
-                        data_span.size(),
-                        local_now_,
-                        remote_now,
-                        transmit_delta,
-                        arrival_delta,
-                        total_objects_,
-                        total_bytes_);
+            SPDLOG_TRACE("OR, RUNNING, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
+                         test_identifier_,
+                         perf_config_.test_name,
+                         object_header.group_id,
+                         object_header.object_id,
+                         data_span.size(),
+                         local_now_,
+                         remote_now,
+                         transmit_delta,
+                         arrival_delta,
+                         total_objects_,
+                         total_bytes_);
 
             if (!first_pass_) {
 
