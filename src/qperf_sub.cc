@@ -423,7 +423,7 @@ main(int argc, char** argv)
         ("endpoint_id",     "Name of the client",                                    cxxopts::value<std::string>()->default_value("perf@cisco.com"))
         ("connect_uri",     "Relay to connect to",                                   cxxopts::value<std::string>()->default_value("moq://localhost:1234"))
         ("i,test_id",        "Test idenfiter number",                                cxxopts::value<std::uint32_t>()->default_value("1"))
-        ("c,config",        "Scenario config file",                                  cxxopts::value<std::string>()->default_value("./config.ini"))
+        ("c,config",        "Scenario config file",                                  cxxopts::value<std::string>())
         ("h,help",          "Print usage");
     // clang-format on
 
