@@ -287,7 +287,9 @@ namespace qperf {
             // Check if we are done...
             if (last_publish_time >= end_transmit_time) {
                 // publish COMPLETE object  - end of test
+                std::this_thread::sleep_for(std::chrono::milliseconds(33));
                 PublishTestComplete();
+                std::this_thread::sleep_for(std::chrono::milliseconds(perf_config_.start_delay / 2));
                 terminate_ = true;
                 return;
             }
@@ -455,6 +457,7 @@ main(int argc, char** argv)
     client_config.metrics_sample_ms = 5000;
     client_config.transport_config = config;
     client_config.connect_uri = result["connect_uri"].as<std::string>();
+    client_config.tick_service_sleep_delay_us = 50000;
 
     const auto logger = spdlog::stderr_color_mt("PERF");
 
