@@ -68,6 +68,9 @@ namespace qperf {
             case Status::kNewGroupRequested:
                 SPDLOG_INFO("PerfPublishTrackeHandler - status kNewGroupRequested");
                 break;
+            case Status::kSubscriptionUpdated:
+                SPDLOG_INFO("PerfPublishTrackeHandler - status kSubscriptionUpdated");
+                break;
             default:
                 SPDLOG_INFO("PerfPublishTrackeHandler - status UNKNOWN");
                 break;

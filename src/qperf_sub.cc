@@ -456,6 +456,7 @@ main(int argc, char** argv)
     client_config.endpoint_id = endpoint_test_id;
     client_config.metrics_sample_ms = 5000;
     client_config.transport_config = config;
+    client_config.tick_service_sleep_delay_us = 50'000;
 
     auto log_id = endpoint_test_id;
 
