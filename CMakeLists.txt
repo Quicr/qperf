@@ -20,43 +20,22 @@ CPMAddPackage("gh:Quicr/libquicr#main")
 CPMAddPackage("gh:jarro2783/cxxopts@3.3.1")
 
 #=============================================================================#
-# Build QPerf Publication executable
+# Build QPerf executable
 #=============================================================================#
 
-add_executable(qperf_pub src/qperf_pub.cc)
-target_link_libraries(qperf_pub PRIVATE quicr cxxopts spdlog::spdlog)
-target_include_directories(qperf_pub PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_executable(qperf src/qperf.cpp src/qperf_pub.cpp src/qperf_sub.cpp)
+target_link_libraries(qperf PRIVATE quicr cxxopts spdlog::spdlog)
+target_include_directories(qperf PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-target_compile_options(qperf_pub PRIVATE
+target_compile_options(qperf PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>
     $<$<CXX_COMPILER_ID:MSVC>: >
 )
 
-set_target_properties(qperf_pub PROPERTIES
+set_target_properties(qperf PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS OFF
 )
 
-target_compile_definitions(qperf_pub PRIVATE SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
-
-#=============================================================================#
-# Build QPerf Subscription executable
-#=============================================================================#
-
-add_executable(qperf_sub src/qperf_sub.cc)
-target_link_libraries(qperf_sub PRIVATE quicr cxxopts spdlog::spdlog)
-target_include_directories(qperf_sub PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-target_compile_options(qperf_sub PRIVATE
-    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>
-    $<$<CXX_COMPILER_ID:MSVC>: >
-)
-
-set_target_properties(qperf_sub PROPERTIES
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS OFF
-)
-
-target_compile_definitions(qperf_sub PRIVATE SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
+target_compile_definitions(qperf PRIVATE SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)

@@ -65,7 +65,10 @@ namespace qperf {
         return { quicr::TrackNamespace{ track_namespace }, { track_name.begin(), track_name.end() } };
     }
 
-    static bool PopulateScenarioFields(const std::string section_name, ini::IniFile& inif, PerfConfig& perf_config)
+    static bool PopulateScenarioFields(const std::string section_name,
+                                       std::uint32_t instance_id,
+                                       ini::IniFile& inif,
+                                       PerfConfig& perf_config)
     {
         bool parsed = false;
         std::string scenario_namespace = "";
@@ -73,7 +76,8 @@ namespace qperf {
 
         perf_config.test_name = section_name;
 
-        scenario_namespace = inif[section_name]["namespace"].as<std::string>();
+        scenario_namespace =
+          std::vformat(inif[section_name]["namespace"].as<std::string>(), std::make_format_args(instance_id));
         scenario_name = inif[section_name]["name"].as<std::string>();
         perf_config.full_track_name = MakeFullTrackName(scenario_namespace, scenario_name);
 

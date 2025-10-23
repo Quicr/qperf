@@ -1,16 +1,16 @@
 // SPDX-FileCopyrightText: Copyright (c) 2025 Cisco Systems
 // SPDX-License-Identifier: BSD-2-Clause
 
+#include "qperf_pub.hpp"
+#include "qperf.hpp"
+
 #include <cxxopts.hpp>
 #include <quicr/client.h>
 #include <quicr/detail/defer.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
-#include "qperf_pub.hpp"
-
 #include <chrono>
-#include <csignal>
 #include <cstdlib>
 #include <thread>
 
@@ -28,10 +28,12 @@ namespace qperf {
         memset(&test_metrics_, '\0', sizeof(test_metrics_));
     }
 
-    auto PerfPublishTrackHandler::Create(const std::string& section_name, ini::IniFile& inif)
+    std::shared_ptr<PerfPublishTrackHandler> PerfPublishTrackHandler::Create(const std::string& section_name,
+                                                                             ini::IniFile& inif,
+                                                                             std::uint32_t instance_id)
     {
         PerfConfig perf_config;
-        PopulateScenarioFields(section_name, inif, perf_config);
+        PopulateScenarioFields(section_name, instance_id, inif, perf_config);
         return std::shared_ptr<PerfPublishTrackHandler>(new PerfPublishTrackHandler(perf_config));
     }
 
@@ -316,183 +318,4 @@ namespace qperf {
             write_thread_.join();
         }
     }
-
-    PerfPubClient::PerfPubClient(const quicr::ClientConfig& cfg, const std::string& configfile)
-      : quicr::Client(cfg)
-      , configfile_(configfile)
-    {
-    }
-
-    void PerfPubClient::StatusChanged(Status status)
-    {
-        std::lock_guard<std::mutex> _(track_handlers_mutex_);
-        switch (status) {
-            case Status::kReady:
-                SPDLOG_INFO("PerfPubClient - kReady");
-                inif_.load(configfile_);
-                for (const auto& section_pair : inif_) {
-                    const std::string& section_name = section_pair.first;
-                    auto pub_handler =
-                      track_handlers_.emplace_back(PerfPublishTrackHandler::Create(section_name, inif_));
-                    PublishTrack(pub_handler);
-                }
-                break;
-
-            case Status::kNotReady:
-                SPDLOG_INFO("PerfPubClient - kNotReady");
-                break;
-            case Status::kConnecting:
-                SPDLOG_INFO("PerfPubClient - kConnecting");
-                break;
-            case Status::kDisconnecting:
-                SPDLOG_INFO("PerfPubClient - kDisconnecting");
-                break;
-            case Status::kPendingServerSetup:
-                SPDLOG_INFO("PerfPubClient - kPendingSeverSetup");
-                break;
-
-            // All of the rest of these are 'errors' and will set terminate_.
-            case Status::kInternalError:
-                SPDLOG_INFO("PerfPubClient - kInternalError - terminate");
-                terminate_ = true;
-                break;
-            case Status::kInvalidParams:
-                SPDLOG_INFO("PerfPubClient - kInvalidParams - terminate");
-                terminate_ = true;
-                break;
-            case Status::kNotConnected:
-                SPDLOG_INFO("PerfPubClient - kNotConnected - terminate");
-                terminate_ = true;
-                break;
-            case Status::kFailedToConnect:
-                SPDLOG_INFO("PerfPubClient - kFailedToConnect - terminate");
-                terminate_ = true;
-                break;
-            default:
-                SPDLOG_INFO("PerfPubClient - UNKNOWN - Connection failed {0}", static_cast<int>(status));
-                terminate_ = true;
-                break;
-        }
-    }
-
-    void PerfPubClient::MetricsSampled(const quicr::ConnectionMetrics&) {}
-
-    bool PerfPubClient::GetTerminateStatus()
-    {
-        return terminate_;
-    }
-
-    bool PerfPubClient::HandlersComplete()
-    {
-        std::lock_guard<std::mutex> _(track_handlers_mutex_);
-        bool ret = true;
-        // Don't like this - should be dependent on a 'state'
-        if (track_handlers_.size() > 0) {
-            for (auto handler : track_handlers_) {
-                if (!handler->IsComplete()) {
-                    ret = false;
-                    break;
-                }
-            }
-        } else {
-            ret = false;
-        }
-        return ret;
-    }
-
-    void PerfPubClient::Terminate()
-    {
-        std::lock_guard<std::mutex> _(track_handlers_mutex_);
-        for (auto handler : track_handlers_) {
-            // Stop the handler writer thread...
-            handler->StopWriter();
-            // Unpublish the track
-            UnpublishTrack(handler);
-        }
-        // we are done
-        terminate_ = true;
-    }
 } // namespace qperf
-
-bool terminate = false;
-
-void
-HandleTerminateSignal(int)
-{
-    terminate = true;
-}
-
-int
-main(int argc, char** argv)
-{
-    // clang-format off
-    cxxopts::Options options("QPerf");
-    options.add_options()
-        ("endpoint_id",     "Name of the client",                                    cxxopts::value<std::string>()->default_value("perf@cisco.com"))
-        ("connect_uri",     "Relay to connect to",                                   cxxopts::value<std::string>()->default_value("moq://localhost:1234"))
-        ("c,config",        "Scenario config file",                                  cxxopts::value<std::string>()->default_value("./config.ini"))
-        ("h,help",          "Print usage");
-    // clang-format on
-
-    cxxopts::ParseResult result;
-
-    try {
-        result = options.parse(argc, argv);
-    } catch (const cxxopts::exceptions::exception& e) {
-        std::cerr << "Caught exception while parsing arguments: " << e.what() << std::endl;
-        return EXIT_FAILURE;
-    }
-
-    if (result.count("help")) {
-        std::cerr << options.help() << std::endl;
-        return EXIT_SUCCESS;
-    }
-
-    quicr::TransportConfig config;
-    config.tls_cert_filename = "";
-    config.tls_key_filename = "";
-    config.time_queue_max_duration = 5000;
-    config.use_reset_wait_strategy = false;
-    config.quic_qlog_path = "";
-
-    quicr::ClientConfig client_config;
-    client_config.endpoint_id = result["endpoint_id"].as<std::string>();
-    client_config.metrics_sample_ms = 5000;
-    client_config.transport_config = config;
-    client_config.connect_uri = result["connect_uri"].as<std::string>();
-    client_config.tick_service_sleep_delay_us = 50000;
-
-    const auto logger = spdlog::stderr_color_mt("PERF");
-
-    auto config_file = result["config"].as<std::string>();
-    SPDLOG_INFO("--------------------------------------------");
-    SPDLOG_INFO("Starting...pub");
-    SPDLOG_INFO("\tconfig file {}", config_file);
-    SPDLOG_INFO("\tclient config:");
-    SPDLOG_INFO("\t\tconnect_uri = {}", client_config.connect_uri);
-    SPDLOG_INFO("\t\tendpoint = {}", client_config.endpoint_id);
-    SPDLOG_INFO("--------------------------------------------");
-
-    std::signal(SIGINT, HandleTerminateSignal);
-
-    auto client = std::make_shared<qperf::PerfPubClient>(client_config, config_file);
-
-    try {
-        client->Connect();
-    } catch (const std::exception& e) {
-        SPDLOG_LOGGER_CRITICAL(
-          logger, "Failed to connect to relay '{0}' with exception: {1}", client_config.connect_uri, e.what());
-        return EXIT_FAILURE;
-    } catch (...) {
-        SPDLOG_LOGGER_CRITICAL(logger, "Unexpected error connecting to relay");
-        return EXIT_FAILURE;
-    }
-
-    while (!terminate && !client->HandlersComplete()) {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-
-    client->Terminate();
-    client->Disconnect();
-    return EXIT_SUCCESS;
-}
