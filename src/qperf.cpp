@@ -13,7 +13,6 @@
 #include <atomic>
 #include <chrono>
 #include <csignal>
-#include <format>
 #include <memory>
 #include <string>
 #include <thread>
