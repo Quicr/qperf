@@ -6,7 +6,6 @@
 
 #include <cxxopts.hpp>
 #include <quicr/client.h>
-#include <quicr/detail/defer.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
@@ -235,8 +234,8 @@ namespace qperf {
 
     void PerfPublishTrackHandler::WriteThread()
     {
-        quicr::Bytes object_0_buffer(perf_config_.bytes_per_group_start);
-        quicr::Bytes object_not_0_buffer(perf_config_.bytes_per_group);
+        quicr::Bytes object_0_buffer(perf_config_.first_object_size);
+        quicr::Bytes object_not_0_buffer(perf_config_.object_size);
 
         for (std::size_t i = 0; i < object_0_buffer.size(); i++) {
             object_0_buffer[i] = i % 255;

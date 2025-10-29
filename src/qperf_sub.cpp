@@ -6,7 +6,6 @@
 
 #include <cxxopts.hpp>
 #include <quicr/client.h>
-#include <quicr/detail/defer.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 

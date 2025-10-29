@@ -6,7 +6,7 @@
 
 #include <cxxopts.hpp>
 #include <quicr/client.h>
-#include <quicr/detail/defer.h>
+#include <quicr/defer.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
@@ -166,9 +166,9 @@ main(int argc, char** argv)
     options.add_options()
         ("endpoint_id",     "Name of the client",                                    cxxopts::value<std::string>()->default_value("perf@cisco.com"))
         ("connect_uri",     "Relay to connect to",                                   cxxopts::value<std::string>()->default_value("moq://localhost:1234"))
-        ("n,instances",     "Number of instances being run",                         cxxopts::value<std::uint32_t>()->default_value("1"))
         ("conference_id",   "Conference identifier",                                 cxxopts::value<std::uint32_t>()->default_value("1"))
-        ("i,instance_id",   "Instance identifier number",                            cxxopts::value<std::uint32_t>()->default_value("1"))
+        ("n,instances",     "Number of instances being run",                         cxxopts::value<std::uint32_t>())
+        ("i,instance_id",   "Instance identifier number",                            cxxopts::value<std::uint32_t>())
         ("c,config",        "Scenario config file",                                  cxxopts::value<std::string>())
         ("h,help",          "Print usage");
     // clang-format on
