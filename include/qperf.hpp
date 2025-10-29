@@ -79,7 +79,7 @@ namespace qperf {
 
         auto& section = inif[section_name];
 
-        scenario_namespace = std::vformat(section["namespace"].as<std::string>(), std::make_format_args(instance_id));
+        scenario_namespace = fmt::vformat(section["namespace"].as<std::string>(), fmt::make_format_args(instance_id));
         scenario_name = section["name"].as<std::string>();
         perf_config.full_track_name = MakeFullTrackName(scenario_namespace, scenario_name);
 
