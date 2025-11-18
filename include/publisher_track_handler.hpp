@@ -14,7 +14,9 @@ namespace qperf {
         PerfPublishTrackHandler(const PerfConfig&);
 
       public:
-        static auto Create(const std::string& section_name, ini::IniFile& inif);
+        static std::shared_ptr<PerfPublishTrackHandler> Create(const std::string& section_name,
+                                                               ini::IniFile& inif,
+                                                               std::uint32_t instance_id);
         void StatusChanged(Status status) override;
         void MetricsSampled(const quicr::PublishTrackMetrics& metrics) override;
 
@@ -43,23 +45,4 @@ namespace qperf {
         qperf::TestMetrics test_metrics_;
         std::mutex mutex_;
     };
-
-    class PerfPubClient : public quicr::Client
-    {
-      public:
-        PerfPubClient(const quicr::ClientConfig& cfg, const std::string& configfile);
-        void StatusChanged(Status status) override;
-        void MetricsSampled(const quicr::ConnectionMetrics&) override;
-        bool GetTerminateStatus();
-        bool HandlersComplete();
-        void Terminate();
-
-      private:
-        bool terminate_;
-        std::string configfile_;
-        ini::IniFile inif_;
-        std::vector<std::shared_ptr<PerfPublishTrackHandler>> track_handlers_;
-        std::mutex track_handlers_mutex_;
-    };
-
 } // namespace qperf
