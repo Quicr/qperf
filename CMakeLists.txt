@@ -23,19 +23,61 @@ CPMAddPackage("gh:jarro2783/cxxopts@3.3.1")
 # Build QPerf executable
 #=============================================================================#
 
-add_executable(qperf src/qperf.cpp src/qperf_pub.cpp src/qperf_sub.cpp)
-target_link_libraries(qperf PRIVATE quicr cxxopts spdlog::spdlog)
-target_include_directories(qperf PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_executable(qperf_meeting src/qperf_meeting.cpp src/publisher_track_handler.cpp src/subscriber_track_handler.cpp)
+target_link_libraries(qperf_meeting PRIVATE quicr cxxopts spdlog::spdlog)
+target_include_directories(qperf_meeting PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-target_compile_options(qperf PRIVATE
+target_compile_options(qperf_meeting PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>
     $<$<CXX_COMPILER_ID:MSVC>: >
 )
 
-set_target_properties(qperf PROPERTIES
+set_target_properties(qperf_meeting PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS OFF
 )
 
-target_compile_definitions(qperf PRIVATE SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
+target_compile_definitions(qperf_meeting PRIVATE SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
+
+#=============================================================================#
+# Build QPerf Publication executable
+#=============================================================================#
+
+add_executable(qperf_pub src/qperf_pub.cpp src/publisher_track_handler.cpp)
+target_link_libraries(qperf_pub PRIVATE quicr cxxopts spdlog::spdlog)
+target_include_directories(qperf_pub PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+target_compile_options(qperf_pub PRIVATE
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>
+    $<$<CXX_COMPILER_ID:MSVC>: >
+)
+
+set_target_properties(qperf_pub PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED YES
+    CXX_EXTENSIONS OFF
+)
+
+target_compile_definitions(qperf_pub PRIVATE SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
+
+#=============================================================================#
+# Build QPerf Subscription executable
+#=============================================================================#
+
+add_executable(qperf_sub src/qperf_sub.cpp src/subscriber_track_handler.cpp)
+target_link_libraries(qperf_sub PRIVATE quicr cxxopts spdlog::spdlog)
+target_include_directories(qperf_sub PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+target_compile_options(qperf_sub PRIVATE
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>
+    $<$<CXX_COMPILER_ID:MSVC>: >
+)
+
+set_target_properties(qperf_sub PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED YES
+    CXX_EXTENSIONS OFF
+)
+
+target_compile_definitions(qperf_sub PRIVATE SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)

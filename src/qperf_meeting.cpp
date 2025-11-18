@@ -1,8 +1,8 @@
 // SPDX-FileCopyrightText: Copyright (c) 2025 Cisco Systems
 // SPDX-License-Identifier: BSD-2-Clause
 
-#include "qperf_pub.hpp"
-#include "qperf_sub.hpp"
+#include "publisher_track_handler.hpp"
+#include "subscriber_track_handler.hpp"
 
 #include <cxxopts.hpp>
 #include <quicr/client.h>
@@ -25,12 +25,12 @@ class PerfClient : public quicr::Client
   public:
     PerfClient(const quicr::ClientConfig& cfg,
                const std::string& configfile,
-               std::uint32_t conference_id,
+               std::uint32_t meeting_id,
                std::uint32_t instances,
                std::uint32_t instance_identifier)
       : quicr::Client(cfg)
       , configfile_(configfile)
-      , conference_id_(conference_id)
+      , meeting_id_(meeting_id)
       , instance_id_(instance_identifier)
       , instances_(instances)
     {
@@ -45,7 +45,7 @@ class PerfClient : public quicr::Client
 
                 for (const auto& [section_name, _] : inif_) {
                     auto pub_handler = pub_track_handlers_.emplace_back(
-                      PerfPublishTrackHandler::Create(section_name, inif_, instance_id_ + (conference_id_ * 1000)));
+                      PerfPublishTrackHandler::Create(section_name, inif_, instance_id_ + (meeting_id_ * 1000)));
                     PublishTrack(pub_handler);
                 }
 
@@ -56,7 +56,7 @@ class PerfClient : public quicr::Client
 
                     for (const auto& [section_name, _] : inif_) {
                         auto sub_handler = sub_track_handlers_.emplace_back(
-                          PerfSubscribeTrackHandler::Create(section_name, inif_, i + (conference_id_ * 1000)));
+                          PerfSubscribeTrackHandler::Create(section_name, inif_, i + (meeting_id_ * 1000)));
                         SubscribeTrack(sub_handler);
                     }
                 }
@@ -139,7 +139,7 @@ class PerfClient : public quicr::Client
     bool terminate_;
     std::string configfile_;
     ini::IniFile inif_;
-    std::uint32_t conference_id_;
+    std::uint32_t meeting_id_;
     std::uint32_t instance_id_;
     std::uint32_t instances_;
 
@@ -163,12 +163,12 @@ main(int argc, char** argv)
     // clang-format off
     cxxopts::Options options("QPerf");
     options.add_options()
-        ("endpoint_id",     "Name of the client",                                    cxxopts::value<std::string>()->default_value("perf@cisco.com"))
-        ("connect_uri",     "Relay to connect to",                                   cxxopts::value<std::string>()->default_value("moq://localhost:1234"))
-        ("conference_id",   "Conference identifier",                                 cxxopts::value<std::uint32_t>()->default_value("1"))
-        ("n,instances",     "Number of instances being run",                         cxxopts::value<std::uint32_t>())
-        ("i,instance_id",   "Instance identifier number",                            cxxopts::value<std::uint32_t>())
-        ("c,config",        "Scenario config file",                                  cxxopts::value<std::string>())
+        ("endpoint_id",     "Name of the client",               cxxopts::value<std::string>()->default_value("perf@cisco.com"))
+        ("connect_uri",     "Relay to connect to",              cxxopts::value<std::string>()->default_value("moq://localhost:1234"))
+        ("meeting_id",      "Meeting identifier",               cxxopts::value<std::uint32_t>()->default_value("1"))
+        ("n,instances",     "Number of instances being run",    cxxopts::value<std::uint32_t>())
+        ("i,instance_id",   "Instance identifier number",       cxxopts::value<std::uint32_t>())
+        ("c,config",        "Scenario config file",             cxxopts::value<std::string>())
         ("h,help",          "Print usage");
     // clang-format on
 
@@ -207,12 +207,12 @@ main(int argc, char** argv)
 
     const auto logger = spdlog::stderr_color_mt(log_id);
 
-    const auto conference_id = result["conference_id"].as<std::uint32_t>();
+    const auto meeting_id = result["meeting_id"].as<std::uint32_t>();
     const auto instance_id = result["instance_id"].as<std::uint32_t>();
     const auto instances = result["instances"].as<std::uint32_t>();
 
     auto client = std::make_shared<PerfClient>(
-      client_config, result["config"].as<std::string>(), conference_id, instances, instance_id);
+      client_config, result["config"].as<std::string>(), meeting_id, instances, instance_id);
 
     std::signal(SIGINT, HandleTerminateSignal);
 
