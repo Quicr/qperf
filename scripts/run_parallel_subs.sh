@@ -3,13 +3,13 @@
 LOGS_DIR=qperf_logs
 
 if [ -z "$1" ]; then
-    echo "Using default number of conferences"
-    CONFERENCES=${1:-100}
+    echo "Using default number of subscriber clients"
+    NUM_SUBS=${1:-100}
 elif [ "$1" -eq 0 ]; then
-    echo "Num conferences must be greater than 0"
+    echo "Num subscribers must be greater than 0"
     exit 1
 else
-    CONFERENCES=${1:-$1}
+    NUM_SUBS=${1:-$1} # Arg 1
 fi
 
 if [ -z "$2" ]; then
@@ -25,21 +25,7 @@ else
     CONFIG_PATH="$3"
 fi
 
-if [ -z "$4" ]; then
-    echo "Using default number of clients"
-    INSTANCES=${1:-100}
-elif [ "$4" -eq 0 ]; then
-    echo "Num clients must be greater than 0"
-    exit 1
-else
-    INSTANCES=${4:-$4}
-fi
+echo "Running $NUM_SUBS subscriber clients"
 
-echo "Running $CONFERENCES conferences with $INSTANCES clients each"
-
-rm -rf $LOGS_DIR
 mkdir -p $LOGS_DIR
-
-for conference_id in $(seq 1 $CONFERENCES); do
-    parallel -j ${INSTANCES}  "./qperf --conference_id $conference_id -i {} -n $INSTANCES -c $CONFIG_PATH --connect_uri $RELAY > $LOGS_DIR/t_$conference_id{}logs.txt 2>&1 &" ::: $(seq ${INSTANCES})
-done
+parallel -j ${NUM_SUBS}  "./qperf_sub -i {} -c $CONFIG_PATH --connect_uri $RELAY > $LOGS_DIR/t_{}logs.txt 2>&1" ::: $(seq ${NUM_SUBS})
