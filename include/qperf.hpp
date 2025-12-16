@@ -1,9 +1,10 @@
 #pragma once
 
-#include <cstdint>
+#include "inicpp.h"
+
 #include <quicr/client.h>
 
-#include "inicpp.h"
+#include <cstdint>
 
 namespace qperf {
     struct PerfConfig
@@ -15,11 +16,11 @@ namespace qperf {
         uint32_t ttl;
         double transmit_interval;
         uint32_t objects_per_group;
-        uint32_t bytes_per_group_start;
-        uint32_t bytes_per_group;
+        uint32_t first_object_size;
+        uint32_t object_size;
         uint64_t start_delay;
-        uint64_t total_test_time;
         uint64_t total_transmit_time;
+        uint64_t total_test_time;
     };
 
     enum class TestMode : uint8_t
@@ -65,7 +66,10 @@ namespace qperf {
         return { quicr::TrackNamespace{ track_namespace }, { track_name.begin(), track_name.end() } };
     }
 
-    static bool PopulateScenarioFields(const std::string section_name, ini::IniFile& inif, PerfConfig& perf_config)
+    inline bool PopulateScenarioFields(const std::string section_name,
+                                       std::uint32_t instance_id,
+                                       ini::IniFile& inif,
+                                       PerfConfig& perf_config)
     {
         bool parsed = false;
         std::string scenario_namespace = "";
@@ -73,11 +77,13 @@ namespace qperf {
 
         perf_config.test_name = section_name;
 
-        scenario_namespace = inif[section_name]["namespace"].as<std::string>();
-        scenario_name = inif[section_name]["name"].as<std::string>();
+        auto& section = inif[section_name];
+
+        scenario_namespace = fmt::vformat(section["namespace"].as<std::string>(), fmt::make_format_args(instance_id));
+        scenario_name = section["name"].as<std::string>();
         perf_config.full_track_name = MakeFullTrackName(scenario_namespace, scenario_name);
 
-        std::string track_mode_ini_str = inif[section_name]["track_mode"].as<std::string>();
+        std::string track_mode_ini_str = section["track_mode"].as<std::string>();
         if (track_mode_ini_str == "datagram") {
             perf_config.track_mode = quicr::TrackMode::kDatagram;
         } else if (track_mode_ini_str == "stream") {
@@ -87,15 +93,15 @@ namespace qperf {
             SPDLOG_WARN("Invalid or missing track mode in scenario. Using default `stream`");
         }
 
-        perf_config.priority = inif[section_name]["priority"].as<std::uint32_t>();
-        perf_config.ttl = inif[section_name]["ttl"].as<std::uint32_t>();
-        perf_config.transmit_interval = inif[section_name]["time_interval"].as<double>();
-        perf_config.objects_per_group = inif[section_name]["objs_per_group"].as<std::uint32_t>();
-        perf_config.bytes_per_group_start = inif[section_name]["bytes_per_group_start"].as<std::uint32_t>();
-        perf_config.bytes_per_group = inif[section_name]["bytes_per_group"].as<std::uint32_t>();
-        perf_config.start_delay = inif[section_name]["start_delay"].as<std::uint64_t>();
-        perf_config.total_test_time = inif[section_name]["total_test_time"].as<std::uint64_t>();
-        perf_config.total_transmit_time = perf_config.total_test_time - perf_config.start_delay;
+        perf_config.priority = section["priority"].as<std::uint32_t>();
+        perf_config.ttl = section["ttl"].as<std::uint32_t>();
+        perf_config.transmit_interval = section["time_interval"].as<double>();
+        perf_config.objects_per_group = section["objects_per_group"].as<std::uint32_t>();
+        perf_config.first_object_size = section["first_object_size"].as<std::uint32_t>();
+        perf_config.object_size = section["object_size"].as<std::uint32_t>();
+        perf_config.start_delay = section["start_delay"].as<std::uint64_t>();
+        perf_config.total_transmit_time = section["total_transmit_time"].as<std::uint64_t>();
+        perf_config.total_test_time = perf_config.total_transmit_time + perf_config.start_delay;
 
         SPDLOG_INFO("--------------------------------------------");
         SPDLOG_INFO("Test config:");
@@ -105,8 +111,8 @@ namespace qperf {
         SPDLOG_INFO("                     pri {}", perf_config.priority);
         SPDLOG_INFO("                     ttl {}", perf_config.ttl);
         SPDLOG_INFO("            objspergroup {}", perf_config.objects_per_group);
-        SPDLOG_INFO("   bytes per group start {}", perf_config.bytes_per_group_start);
-        SPDLOG_INFO("         bytes per group {}", perf_config.bytes_per_group);
+        SPDLOG_INFO("   bytes per group start {}", perf_config.first_object_size);
+        SPDLOG_INFO("         bytes per group {}", perf_config.object_size);
         SPDLOG_INFO("       transmit interval {}", perf_config.transmit_interval);
         SPDLOG_INFO("             start_delay {}", perf_config.start_delay);
         SPDLOG_INFO("         total test time {}", perf_config.total_test_time);

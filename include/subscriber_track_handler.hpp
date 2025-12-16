@@ -13,7 +13,9 @@ namespace qperf {
         PerfSubscribeTrackHandler(const PerfConfig& perf_config, std::uint32_t test_identifier);
 
       public:
-        static auto Create(const std::string& section_name, ini::IniFile& inif, std::uint32_t test_identifier);
+        static std::shared_ptr<PerfSubscribeTrackHandler> Create(const std::string& section_name,
+                                                                 ini::IniFile& inif,
+                                                                 std::uint32_t test_identifier);
         void ObjectReceived(const quicr::ObjectHeaders&, quicr::BytesSpan) override;
         void StatusChanged(Status status) override;
         void MetricsSampled(const quicr::SubscribeTrackMetrics& metrics) override;
@@ -54,27 +56,6 @@ namespace qperf {
         std::int64_t min_object_arrival_delta_;
         double avg_object_arrival_delta_;
         std::int64_t total_arrival_delta_;
-    };
-
-    class PerfSubClient : public quicr::Client
-    {
-      public:
-        PerfSubClient(const quicr::ClientConfig& cfg, const std::string& configfile, std::uint32_t test_identifier);
-        void StatusChanged(Status status) override;
-        void MetricsSampled(const quicr::ConnectionMetrics&) override {}
-
-        bool HandlersComplete();
-        void Terminate();
-
-      private:
-        bool terminate_;
-        std::string configfile_;
-        ini::IniFile inif_;
-        std::uint32_t test_identifier_;
-
-        std::vector<std::shared_ptr<PerfSubscribeTrackHandler>> track_handlers_;
-
-        std::mutex track_handlers_mutex_;
     };
 
 } // namespace
