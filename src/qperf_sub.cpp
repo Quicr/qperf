@@ -36,8 +36,8 @@ class PerfSubClient : public quicr::Client
                 for (const auto& section_pair : inif_) {
                     const std::string& section_name = section_pair.first;
                     SPDLOG_INFO("Starting test - {}", section_name);
-                    auto sub_handler = track_handlers_.emplace_back(
-                      qperf::PerfSubscribeTrackHandler::Create(section_name, inif_, test_identifier_));
+                    auto sub_handler =
+                      track_handlers_.emplace_back(qperf::PerfSubscribeTrackHandler::Create(section_name, inif_, 0));
                     SubscribeTrack(sub_handler);
                 }
                 break;
