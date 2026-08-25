@@ -72,9 +72,11 @@ MakeClientCallbacks(const cxxopts::ParseResult& result)
         const auto meeting_id = result["meeting_id"].as<std::uint32_t>();
         const auto instance_id = result["instance_id"].as<std::uint32_t>();
         const auto instances = result["instances"].as<std::uint32_t>();
+        const auto timeout_grace = result["timeout_grace"].as<std::uint64_t>();
 
-        return std::make_tuple(
-          client_config, std::make_shared<PerfMeetingClientCallbacks>(config_file, meeting_id, instances, instance_id));
+        return std::make_tuple(client_config,
+                               std::make_shared<PerfMeetingClientCallbacks>(
+                                 config_file, meeting_id, instances, instance_id, timeout_grace));
     } else if (result.count("publisher")) {
         SPDLOG_INFO("--------------------------------------------");
         SPDLOG_INFO("Starting...pub");
@@ -107,7 +109,6 @@ main(int argc, char** argv)
 {
     // clang-format off
     cxxopts::Options options("MoQ Bench");
-    options.allow_unrecognised_options();
     options.add_options()
         ("meeting",         "Run a meeting benchmark")
         ("publisher",       "Run a benchmark publisher")
@@ -121,7 +122,9 @@ main(int argc, char** argv)
 
     options.add_options("Meeting")
         ("meeting_id",      "Meeting identifier",               cxxopts::value<std::uint32_t>()->default_value("1"))
-        ("n,instances",     "Number of instances being run",    cxxopts::value<std::uint32_t>());
+        ("n,instances",     "Number of instances being run",    cxxopts::value<std::uint32_t>())
+        ("timeout_grace",   "Milliseconds beyond the configured test time to wait for a peer's test complete object before giving up on its track",
+                                                                cxxopts::value<std::uint64_t>()->default_value("30000"));
     // clang-format on
 
     cxxopts::ParseResult result;

@@ -18,11 +18,13 @@ namespace moqbench {
         PerfMeetingClientCallbacks(const std::string& configfile,
                                    std::uint32_t meeting_id,
                                    std::uint32_t instances,
-                                   std::uint32_t instance_identifier)
+                                   std::uint32_t instance_identifier,
+                                   std::uint64_t timeout_grace_ms)
           : PerfClientCallbacks(configfile)
           , meeting_id_(meeting_id)
           , instance_id_(instance_identifier)
           , instances_(instances)
+          , timeout_grace_ms_(timeout_grace_ms)
         {
         }
 
@@ -78,8 +80,8 @@ namespace moqbench {
                         }
 
                         for (const auto& [section_name, _] : inif_) {
-                            auto sub_handler = sub_track_handlers_.emplace_back(
-                              PerfSubscribeTrackHandler::Create(section_name, inif_, i + (meeting_id_ * 1000)));
+                            auto sub_handler = sub_track_handlers_.emplace_back(PerfSubscribeTrackHandler::Create(
+                              section_name, inif_, i + (meeting_id_ * 1000), timeout_grace_ms_));
 
                             sub_handler->SetPublishInitiated();
 
@@ -139,7 +141,7 @@ namespace moqbench {
             }
 
             for (auto handler : sub_track_handlers_) {
-                if (!handler->IsComplete()) {
+                if (!handler->IsComplete() && !handler->HasTimedOut()) {
                     return false;
                 }
             }
@@ -168,6 +170,7 @@ namespace moqbench {
         std::uint32_t meeting_id_;
         std::uint32_t instance_id_;
         std::uint32_t instances_;
+        std::uint64_t timeout_grace_ms_;
 
         std::vector<std::shared_ptr<PerfSubscribeTrackHandler>> sub_track_handlers_;
         std::vector<std::shared_ptr<PerfPublishTrackHandler>> pub_track_handlers_;

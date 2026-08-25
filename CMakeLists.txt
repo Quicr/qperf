@@ -41,3 +41,21 @@ set_target_properties(moqbench PROPERTIES
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS OFF
 )
+
+#=============================================================================#
+# Build Parallel Bench runner
+#=============================================================================#
+
+add_executable(parallel_moqbench src/parallel_bench.cpp)
+target_link_libraries(parallel_moqbench PRIVATE quicr cxxopts spdlog::spdlog)
+
+target_compile_options(parallel_moqbench PRIVATE
+    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>
+    $<$<CXX_COMPILER_ID:MSVC>: >
+)
+
+set_target_properties(parallel_moqbench PROPERTIES
+    CXX_STANDARD 20
+    CXX_STANDARD_REQUIRED YES
+    CXX_EXTENSIONS OFF
+)
