@@ -74,9 +74,9 @@ MakeClientCallbacks(const cxxopts::ParseResult& result)
         const auto instances = result["instances"].as<std::uint32_t>();
         const auto timeout_grace = result["timeout_grace"].as<std::uint64_t>();
 
-        return std::make_tuple(client_config,
-                               std::make_shared<PerfMeetingClientCallbacks>(
-                                 config_file, meeting_id, instances, instance_id, timeout_grace));
+        return std::make_tuple(
+          client_config,
+          std::make_shared<PerfMeetingClientCallbacks>(config_file, meeting_id, instances, instance_id, timeout_grace));
     } else if (result.count("publisher")) {
         SPDLOG_INFO("--------------------------------------------");
         SPDLOG_INFO("Starting...pub");

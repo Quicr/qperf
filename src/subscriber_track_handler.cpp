@@ -97,9 +97,8 @@ namespace moqbench {
             return true;
         }
 
-        const auto waited = std::chrono::duration_cast<std::chrono::milliseconds>(
-                              std::chrono::steady_clock::now() - created_at_)
-                              .count();
+        const auto waited =
+          std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - created_at_).count();
 
         SPDLOG_WARN("--------------------------------------------");
         SPDLOG_WARN("{}", perf_config_.test_name);
