@@ -1,11 +1,11 @@
 #include <cxxopts.hpp>
+#include <quicr/utilities/format.h>
 
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
 #include <cstdlib>
 #include <filesystem>
-#include <format>
 #include <iostream>
 #include <string>
 #include <string_view>
@@ -123,29 +123,29 @@ main(int argc, char** argv)
         std::cerr << "- Meetings: " << num_meetings << std::endl;
         std::cerr << "- Clients per meeting: " << instances << std::endl;
 
-        command =
-          std::format("parallel --eta -j {} \"{}/moqbench --meeting --meeting_id {{1}} -i {{2}} -n {} -c '{}' -r '{}' "
-                      "> '{}/t_m{{1}}_c{{2}}_logs.txt' 2>&1\" ::: $(seq {}) ::: $(seq {})",
-                      static_cast<std::uint64_t>(num_meetings) * instances,
-                      bench_path,
-                      instances,
-                      config,
-                      relay,
-                      logs_dir,
-                      num_meetings,
-                      instances);
+        command = quicr::format(
+          "parallel --eta -j {} \"{}/moqbench --meeting --meeting_id {{1}} -i {{2}} -n {} -c '{}' -r '{}' "
+          "> '{}/t_m{{1}}_c{{2}}_logs.txt' 2>&1\" ::: $(seq {}) ::: $(seq {})",
+          static_cast<std::uint64_t>(num_meetings) * instances,
+          bench_path,
+          instances,
+          config,
+          relay,
+          logs_dir,
+          num_meetings,
+          instances);
 
     } else {
         std::cerr << "- Subscribers: " << instances << std::endl;
         command =
-          std::format("parallel --eta -j {} \"{}/moqbench --subscriber -i {{}} -c '{}' -r '{}' > '{}/t_{{}}logs.txt' "
-                      "2>&1\" ::: $(seq {})",
-                      instances,
-                      bench_path,
-                      config,
-                      relay,
-                      logs_dir,
-                      instances);
+          quicr::format("parallel --eta -j {} \"{}/moqbench --subscriber -i {{}} -c '{}' -r '{}' > '{}/t_{{}}logs.txt' "
+                        "2>&1\" ::: $(seq {})",
+                        instances,
+                        bench_path,
+                        config,
+                        relay,
+                        logs_dir,
+                        instances);
     }
 
     const int ret = std::system(command.c_str());

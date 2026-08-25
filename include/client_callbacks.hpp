@@ -4,6 +4,7 @@
 
 #include <quicr/session_callbacks.h>
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <thread>
@@ -14,7 +15,8 @@ namespace moqbench {
     {
       public:
         PerfClientCallbacks(const std::string& config_file)
-          : config_file_(config_file)
+          : terminate_(false)
+          , config_file_(config_file)
         {
         }
 
@@ -24,8 +26,10 @@ namespace moqbench {
 
         virtual void Terminate(const std::shared_ptr<quicr::Session>& session) = 0;
 
+        bool ShouldTerminate() const { return terminate_; }
+
       protected:
-        bool terminate_;
+        std::atomic_bool terminate_;
         std::string config_file_;
         ini::IniFile inif_;
 

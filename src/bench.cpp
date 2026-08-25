@@ -168,7 +168,7 @@ main(int argc, char** argv)
         return EXIT_FAILURE;
     }
 
-    while (!terminate && !callbacks->HandlersComplete()) {
+    while (!terminate && !callbacks->ShouldTerminate() && !callbacks->HandlersComplete()) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
 

@@ -20,9 +20,6 @@ CPMAddPackage("gh:Quicr/libquicr#improve-data-ctx")
 CPMAddPackage("gh:jarro2783/cxxopts@3.3.1")
 CPMAddPackage("gh:gabime/spdlog@1.17.0")
 
-get_target_property(QUICR_COMPILE_DEFINITIONS quicr COMPILE_DEFINITIONS)
-    add_compile_definitions(QUICR_HAVE_STD_FORMAT)
-
 #=============================================================================#
 # Build MoQ Bench executable
 #=============================================================================#
@@ -41,13 +38,14 @@ set_target_properties(moqbench PROPERTIES
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS OFF
 )
+target_compile_definitions(moqbench PRIVATE $<TARGET_PROPERTY:quicr,COMPILE_DEFINITIONS>)
 
 #=============================================================================#
 # Build Parallel Bench runner
 #=============================================================================#
 
 add_executable(parallel_moqbench src/parallel_bench.cpp)
-target_link_libraries(parallel_moqbench PRIVATE quicr cxxopts spdlog::spdlog)
+target_link_libraries(parallel_moqbench PRIVATE quicr cxxopts)
 
 target_compile_options(parallel_moqbench PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>
@@ -59,3 +57,5 @@ set_target_properties(parallel_moqbench PROPERTIES
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS OFF
 )
+
+target_compile_definitions(parallel_moqbench PRIVATE $<TARGET_PROPERTY:quicr,COMPILE_DEFINITIONS>)
