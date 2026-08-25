@@ -18,6 +18,10 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 CPMAddPackage("gh:Quicr/libquicr#improve-data-ctx")
 CPMAddPackage("gh:jarro2783/cxxopts@3.3.1")
+
+if (NOT HAS_STD_VFORMAT)
+    set(SPDLOG_FMT_EXTERNAL ON)
+endif()
 CPMAddPackage("gh:gabime/spdlog@1.17.0")
 
 #=============================================================================#
