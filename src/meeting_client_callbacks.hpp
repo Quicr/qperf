@@ -53,7 +53,7 @@ namespace moqbench {
                                 std::string(tfn.name.begin(), tfn.name.end()),
                                 static_cast<int>(publish_attributes.forward));
 
-                    return quicr::PublishResponse{ .attributes = { .forward = true }, handler };
+                    return quicr::PublishResponse{ { .forward = true }, handler };
                 }
             }
 
