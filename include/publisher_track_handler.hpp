@@ -1,11 +1,12 @@
 #pragma once
 
-#include <cstdint>
-#include <quicr/client.h>
-
 #include "inicpp.h"
 #include "moqbench.hpp"
+
+#include <quicr/handlers/publish_track_handler.h>
+
 #include <chrono>
+#include <cstdint>
 
 namespace moqbench {
     class PerfPublishTrackHandler : public quicr::PublishTrackHandler

@@ -16,68 +16,28 @@ include(cmake/CPM.cmake)
 ## hack fix for picotls and other older submodules of libquicr
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
-CPMAddPackage("gh:Quicr/libquicr#c3019367494cf5e89172d5eb1878a5715c5cfbaf")
+CPMAddPackage("gh:Quicr/libquicr#improve-data-ctx")
 CPMAddPackage("gh:jarro2783/cxxopts@3.3.1")
+CPMAddPackage("gh:gabime/spdlog@1.17.0")
+
+get_target_property(QUICR_COMPILE_DEFINITIONS quicr COMPILE_DEFINITIONS)
+    add_compile_definitions(QUICR_HAVE_STD_FORMAT)
 
 #=============================================================================#
-# Build QPerf executable
+# Build MoQ Bench executable
 #=============================================================================#
 
-add_executable(moqbench_meeting src/meeting.cpp src/publisher_track_handler.cpp src/subscriber_track_handler.cpp)
-target_link_libraries(moqbench_meeting PRIVATE quicr cxxopts spdlog::spdlog)
-target_include_directories(moqbench_meeting PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
+add_executable(moqbench src/bench.cpp src/publisher_track_handler.cpp src/subscriber_track_handler.cpp)
+target_link_libraries(moqbench PRIVATE quicr cxxopts spdlog::spdlog)
+target_include_directories(moqbench PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-target_compile_options(moqbench_meeting PRIVATE
+target_compile_options(moqbench PRIVATE
     $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>
     $<$<CXX_COMPILER_ID:MSVC>: >
 )
 
-set_target_properties(moqbench_meeting PROPERTIES
+set_target_properties(moqbench PROPERTIES
     CXX_STANDARD 20
     CXX_STANDARD_REQUIRED YES
     CXX_EXTENSIONS OFF
 )
-
-target_compile_definitions(moqbench_meeting PRIVATE SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
-
-#=============================================================================#
-# Build QPerf Publication executable
-#=============================================================================#
-
-add_executable(moqbench_pub src/pub.cpp src/publisher_track_handler.cpp)
-target_link_libraries(moqbench_pub PRIVATE quicr cxxopts spdlog::spdlog)
-target_include_directories(moqbench_pub PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-target_compile_options(moqbench_pub PRIVATE
-    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>
-    $<$<CXX_COMPILER_ID:MSVC>: >
-)
-
-set_target_properties(moqbench_pub PROPERTIES
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS OFF
-)
-
-target_compile_definitions(moqbench_pub PRIVATE SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)
-
-#=============================================================================#
-# Build QPerf Subscription executable
-#=============================================================================#
-
-add_executable(moqbench_sub src/sub.cpp src/subscriber_track_handler.cpp)
-target_link_libraries(moqbench_sub PRIVATE quicr cxxopts spdlog::spdlog)
-target_include_directories(moqbench_sub PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-target_compile_options(moqbench_sub PRIVATE
-    $<$<OR:$<CXX_COMPILER_ID:Clang>,$<CXX_COMPILER_ID:AppleClang>,$<CXX_COMPILER_ID:GNU>>: -Wpedantic -Wextra -Wall>
-    $<$<CXX_COMPILER_ID:MSVC>: >
-)
-
-set_target_properties(moqbench_sub PROPERTIES
-    CXX_STANDARD 20
-    CXX_STANDARD_REQUIRED YES
-    CXX_EXTENSIONS OFF
-)
-
-target_compile_definitions(moqbench_sub PRIVATE SPDLOG_ACTIVE_LEVEL=SPDLOG_LEVEL_DEBUG)

@@ -5,7 +5,7 @@
 #include "moqbench.hpp"
 
 #include <cxxopts.hpp>
-#include <quicr/client.h>
+#include <quicr/handlers/subscribe_track_handler.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 

@@ -1,10 +1,11 @@
 #pragma once
 
-#include <cstdint>
-#include <quicr/client.h>
-
 #include "inicpp.h"
 #include "moqbench.hpp"
+
+#include <quicr/handlers/subscribe_track_handler.h>
+
+#include <cstdint>
 
 namespace moqbench {
     class PerfSubscribeTrackHandler : public quicr::SubscribeTrackHandler
