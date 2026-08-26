@@ -124,14 +124,6 @@ namespace moqbench {
         std::lock_guard<std::mutex> _(mutex_);
         ObjectTestHeader test_header;
         memset(&test_header, '\0', sizeof(test_header));
-        if (perf_config_.objects_per_group > 0) {
-            if (!(object_id_ % perf_config_.objects_per_group)) {
-                EndSubgroup(group_id_, 0);
-                object_id_ = 0;
-                group_id_ += 1;
-            }
-        }
-
         quicr::ObjectHeaders object_headers;
         object_headers.group_id = group_id_;
         object_headers.object_id = object_id_;
@@ -311,6 +303,12 @@ namespace moqbench {
 
         test_mode_ = moqbench::TestMode::kRunning;
         while (!terminate_) {
+            if (perf_config_.objects_per_group > 0 && object_id_ == perf_config_.objects_per_group) {
+                EndSubgroup(group_id_, 0);
+                object_id_ = 0;
+                group_id_ += 1;
+            }
+
             std::chrono::time_point<std::chrono::system_clock> last_publish_time;
             if (object_id_ == 0) {
                 quicr::BytesSpan object_span(object_0_buffer);
