@@ -49,7 +49,6 @@ MakeClientCallbacks(const cxxopts::ParseResult& result)
     config.tls_cert_filename = "";
     config.tls_key_filename = "";
     config.time_queue_max_duration = 5000;
-    config.use_reset_wait_strategy = false;
     config.quic_qlog_path = "";
     config.metrics_sample_ms = 5000;
 
