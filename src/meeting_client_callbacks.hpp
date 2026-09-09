@@ -100,8 +100,9 @@ namespace moqbench {
                     SPDLOG_INFO("Client status - kConnecting");
                     break;
                 case quicr::Session::Status::kNotConnected:
-                    SPDLOG_INFO("Client status - kNotConnected");
-                    exit(0);
+                    SPDLOG_INFO("Client status - kNotConnected - terminate");
+                    terminate_ = true;
+                    break;
                 case quicr::Session::Status::kPendingServerSetup:
                     SPDLOG_INFO("Client status - kPendingSeverSetup");
                     break;
@@ -151,6 +152,10 @@ namespace moqbench {
 
         void Terminate(const std::shared_ptr<quicr::Session>& session) override
         {
+            if (terminate_.exchange(true)) {
+                return;
+            }
+
             std::lock_guard<std::mutex> _(mutex_);
 
             for (auto handler : sub_track_handlers_) {
@@ -162,8 +167,6 @@ namespace moqbench {
                 handler->StopWriter();
                 session->UnpublishTrack(handler);
             }
-
-            terminate_ = true;
         }
 
       private:

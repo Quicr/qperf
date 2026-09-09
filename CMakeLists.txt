@@ -16,10 +16,10 @@ include(cmake/CPM.cmake)
 ## hack fix for picotls and other older submodules of libquicr
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
-CPMAddPackage("gh:Quicr/libquicr#4bade5938921afa7e28ba5c822f09e0cd6057943")
+CPMAddPackage("gh:quicr/libquicr#main")
 CPMAddPackage("gh:jarro2783/cxxopts@3.3.1")
 
-if (NOT HAS_STD_VFORMAT)
+if (TARGET fmt)
     set(SPDLOG_FMT_EXTERNAL ON)
 endif()
 CPMAddPackage("gh:gabime/spdlog@1.17.0")

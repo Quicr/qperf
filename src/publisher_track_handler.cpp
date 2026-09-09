@@ -9,6 +9,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
+#include <algorithm>
 #include <chrono>
 #include <cstdlib>
 #include <thread>
@@ -34,6 +35,14 @@ namespace moqbench {
         PerfConfig perf_config;
         PopulateScenarioFields(section_name, instance_id, inif, perf_config);
         return std::shared_ptr<PerfPublishTrackHandler>(new PerfPublishTrackHandler(perf_config));
+    }
+
+    /// A std::thread stays joinable after its function returns, so the writer must be
+    /// joined here; otherwise ~std::thread calls std::terminate on a handler that was
+    /// destroyed without StopWriter() having run.
+    PerfPublishTrackHandler::~PerfPublishTrackHandler()
+    {
+        StopWriter();
     }
 
     void PerfPublishTrackHandler::StatusChanged(Status status)
@@ -93,7 +102,7 @@ namespace moqbench {
             // calculate bitrate metrics
             auto diff = std::chrono::duration_cast<std::chrono::seconds>(now - last_metric_time_);
             std::uint64_t delta_bytes = metrics.bytes_published - last_bytes_;
-            std::uint64_t bitrate = ((delta_bytes) * 8) / diff.count();
+            std::uint64_t bitrate = ((delta_bytes) * 8) / std::max(diff.count(), std::int64_t(1));
             test_metrics_.bitrate_total += bitrate;
             test_metrics_.max_publish_bitrate =
               bitrate > test_metrics_.max_publish_bitrate ? bitrate : test_metrics_.max_publish_bitrate;

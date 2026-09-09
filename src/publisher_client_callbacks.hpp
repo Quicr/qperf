@@ -93,14 +93,19 @@ namespace moqbench {
         void Terminate(const std::shared_ptr<quicr::Session>& session) override
         {
             std::lock_guard<std::mutex> _(mutex_);
+
+            // Closing the session reports it as removed, which lands back here a second time.
+            if (terminate_.exchange(true)) {
+                return;
+            }
+
+            SPDLOG_INFO("PerfPubClient - stopping {} publish track(s)", track_handlers_.size());
+
             for (auto handler : track_handlers_) {
-                // Stop the handler writer thread...
+                SPDLOG_INFO("unpublish track {}", handler->TestName());
                 handler->StopWriter();
-                // Unpublish the track
                 session->UnpublishTrack(handler);
             }
-            // we are done
-            terminate_ = true;
         }
 
       private:
