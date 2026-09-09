@@ -1,11 +1,12 @@
 #pragma once
 
-#include <cstdint>
-#include <quicr/client.h>
-
 #include "inicpp.h"
 #include "moqbench.hpp"
+
+#include <quicr/handlers/publish_track_handler.h>
+
 #include <chrono>
+#include <cstdint>
 
 namespace moqbench {
     class PerfPublishTrackHandler : public quicr::PublishTrackHandler
@@ -17,10 +18,15 @@ namespace moqbench {
         static std::shared_ptr<PerfPublishTrackHandler> Create(const std::string& section_name,
                                                                ini::IniFile& inif,
                                                                std::uint32_t instance_id);
+
+        ~PerfPublishTrackHandler() override;
+
         void StatusChanged(Status status) override;
         void MetricsSampled(const quicr::PublishTrackMetrics& metrics) override;
 
         moqbench::TestMode TestMode() { return test_mode_; }
+
+        std::string TestName() { return perf_config_.test_name; }
 
         std::chrono::time_point<std::chrono::system_clock> PublishObjectWithMetrics(quicr::BytesSpan object_span);
         std::uint64_t PublishTestComplete();

@@ -5,7 +5,7 @@
 #include "moqbench.hpp"
 
 #include <cxxopts.hpp>
-#include <quicr/client.h>
+#include <quicr/handlers/subscribe_track_handler.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
 
@@ -28,7 +28,8 @@ namespace moqbench {
      */
     PerfSubscribeTrackHandler::PerfSubscribeTrackHandler(const PerfConfig& perf_config,
                                                          std::uint32_t test_identifier,
-                                                         bool publish_initiated)
+                                                         bool publish_initiated,
+                                                         std::uint64_t timeout_grace_ms)
       : SubscribeTrackHandler(perf_config.full_track_name,
                               perf_config.priority,
                               quicr::messages::GroupOrder::kAscending,
@@ -36,6 +37,12 @@ namespace moqbench {
                               std::nullopt,
                               publish_initiated)
       , terminate_(false)
+      , timed_out_(false)
+      , created_at_(std::chrono::steady_clock::now())
+      , deadline_(timeout_grace_ms == 0
+                    ? std::nullopt
+                    : std::optional(created_at_ + std::chrono::milliseconds(perf_config.total_test_time) +
+                                    std::chrono::milliseconds(timeout_grace_ms)))
       , perf_config_(perf_config)
       , first_pass_(true)
       , last_bytes_(0)
@@ -63,11 +70,54 @@ namespace moqbench {
 
     std::shared_ptr<PerfSubscribeTrackHandler> PerfSubscribeTrackHandler::Create(const std::string& section_name,
                                                                                  ini::IniFile& inif,
-                                                                                 std::uint32_t instance_id)
+                                                                                 std::uint32_t instance_id,
+                                                                                 std::uint64_t timeout_grace_ms)
     {
         PerfConfig perf_config;
         PopulateScenarioFields(section_name, instance_id, inif, perf_config);
-        return std::shared_ptr<PerfSubscribeTrackHandler>(new PerfSubscribeTrackHandler(perf_config, instance_id));
+        return std::shared_ptr<PerfSubscribeTrackHandler>(
+          new PerfSubscribeTrackHandler(perf_config, instance_id, false, timeout_grace_ms));
+    }
+
+    bool PerfSubscribeTrackHandler::HasTimedOut()
+    {
+        if (!deadline_ || terminate_) {
+            return false;
+        }
+
+        if (timed_out_) {
+            return true;
+        }
+
+        if (std::chrono::steady_clock::now() < *deadline_) {
+            return false;
+        }
+
+        if (timed_out_.exchange(true)) {
+            return true;
+        }
+
+        const auto waited =
+          std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - created_at_).count();
+
+        SPDLOG_WARN("--------------------------------------------");
+        SPDLOG_WARN("{}", perf_config_.test_name);
+        SPDLOG_WARN("Timed out waiting for test complete");
+        SPDLOG_WARN("                     Waited (ms) {}", waited);
+        SPDLOG_WARN("      Configured test time (ms) {}", perf_config_.total_test_time);
+        SPDLOG_WARN("       Total subscribed objects {}, bytes {}", total_objects_, total_bytes_);
+        SPDLOG_WARN("--------------------------------------------");
+
+        // id,test_name,waited,total_test_time,total_objects,total_bytes
+        SPDLOG_WARN("OR TIMEOUT, {}, {}, {}, {}, {}, {}",
+                    test_identifier_,
+                    perf_config_.test_name,
+                    waited,
+                    perf_config_.total_test_time,
+                    total_objects_,
+                    total_bytes_);
+
+        return true;
     }
 
     void PerfSubscribeTrackHandler::StatusChanged(Status status)
